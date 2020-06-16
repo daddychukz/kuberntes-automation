@@ -12,20 +12,6 @@ resource "digitalocean_kubernetes_cluster" "zeeders" {
   }
 }
 
-// resource "digitalocean_kubernetes_node_pool" "zeeders" {
-//   cluster_id = digitalocean_kubernetes_cluster.zeeders.id
-
-//   name       = var.pool_name_2
-//   size       = var.pool_size
-//   node_count = 2
-//   tags       = ["backend"]
-
-//   labels = {
-//     service  = "backend"
-//     priority = "high"
-//   }
-// }
-
 # Create a new Jenkins server
 resource "digitalocean_droplet" "jenkins" {
   image  = "ubuntu-18-04-x64"
