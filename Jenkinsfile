@@ -36,8 +36,20 @@ pipeline {
             }
         }
         stage('Deploy to Kubernetes Cluster') {
+            when{
+                branch '(master|develop)'
+            }
+            input {
+                message "Should we continue?"
+                ok "Yes, we should."
+                submitter "alice,bob"
+                parameters {
+                    string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
+                }
+            }
             steps {
                 withKubeConfig([credentialsId: 'zeeders']){
+                    echo "Hello, ${PERSON}, nice to meet you."
                     sh 'kubectl get svc'
                     sh 'helm list'
                     sh "helm lint ./${HELM_CHART_DIRECTORY}"

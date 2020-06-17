@@ -83,3 +83,7 @@ tf_digitalocean_kubernetes/terraform.tfstate
 tf_digitalocean_kubernetes/terraform.tfvars
 tf_digitalocean_kubernetes/terraform.tfstate.backup
 tf_digitalocean_kubernetes/variables.tf
+key.txt
+deployment-config/nodeapp/templates/secret.yaml
+deployment-config/auth-secret.yaml
+deployment-config/mongo-secret.yaml
