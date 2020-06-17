@@ -15,7 +15,7 @@ pipeline {
         stage('Build Docker Image'){
             steps{
                 script {
-                    dockerImage = docker.build registry + DOCKER_TAG
+                    dockerImage = docker.build registry + ":$DOCKER_TAG"
                 }
             }
         }
@@ -50,6 +50,7 @@ pipeline {
 }
 
 def getDockerTag(){
-    def tag  = sh script: 'git rev-parse HEAD', returnStdout: true
+    sh script: 'git rev-parse --short HEAD > .git/commit-id', returnStdout: true
+    def tag  = readFile('.git/commit-id').trim()
     return tag
 }
