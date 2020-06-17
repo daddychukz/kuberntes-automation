@@ -35,17 +35,28 @@ pipeline {
                 sh "docker rmi $registry:${DOCKER_TAG}"
             }
         }
+        stage('Deploy to Kubernetes Staging Cluster') {
+            when{
+                branch 'develop'
+            }
+            steps {
+                withKubeConfig([credentialsId: 'zeeders']){
+                    sh 'kubectl get svc'
+                    sh 'helm list'
+                    sh "helm lint ./${HELM_CHART_DIRECTORY}"
+                    sh "helm upgrade --install --wait --set image.tag=${DOCKER_TAG} ${HELM_APP_NAME} ./${HELM_CHART_DIRECTORY}"
+                    sh "helm list | grep ${HELM_APP_NAME}"
+                }
+            }
+        }
         stage('Deploy to Kubernetes Cluster') {
             when{
-                branch '(master|develop)'
+                branch 'master'
             }
             input {
-                message "Should we continue?"
-                ok "Yes, we should."
-                submitter "alice,bob"
-                parameters {
-                    string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
-                }
+                message "Deploy to Production Cluster?"
+                ok "Deploy"
+                submitter "chuks"
             }
             steps {
                 withKubeConfig([credentialsId: 'zeeders']){
