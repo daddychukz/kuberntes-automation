@@ -6,7 +6,7 @@ pipeline {
         DOCKER_TAG = getDockerTag()
         dockerImage = ''
         HELM_CHART_DIRECTORY = 'deployment-config/nodeapp'
-        HELM_APP_NAME = 'node-app'
+        HELM_APP_NAME = 'nodejs'
     }
     stages {
         stage("Checkout code") {
@@ -41,7 +41,7 @@ pipeline {
                     sh 'kubectl get svc'
                     sh 'helm list'
                     sh "helm lint ./${HELM_CHART_DIRECTORY}"
-                    sh "helm upgrade --install --wait --timeout 60s --set image.tag=${DOCKER_TAG} ${HELM_APP_NAME} ./${HELM_CHART_DIRECTORY}"
+                    sh "helm upgrade --install --wait --set image.tag=${DOCKER_TAG} ${HELM_APP_NAME} ./${HELM_CHART_DIRECTORY}"
                     sh "helm list | grep ${HELM_APP_NAME}"
                 }
             }
