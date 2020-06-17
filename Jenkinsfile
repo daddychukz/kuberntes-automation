@@ -35,38 +35,17 @@ pipeline {
                 sh "docker rmi $registry:${DOCKER_TAG}"
             }
         }
-        stage('Apply Kubernetes files') {
+        stage('Deploy to Kubernetes Cluster') {
             steps {
                 withKubeConfig([credentialsId: 'zeeders']){
                     sh 'kubectl get svc'
                     sh 'helm list'
                     sh "helm lint ./${HELM_CHART_DIRECTORY}"
-                    sh "helm upgrade --wait --timeout 60 --set image.tag=${DOCKER_TAG} ${HELM_APP_NAME} ./${HELM_CHART_DIRECTORY}"
+                    sh "helm upgrade --install --wait --timeout 60s --set image.tag=${DOCKER_TAG} ${HELM_APP_NAME} ./${HELM_CHART_DIRECTORY}"
                     sh "helm list | grep ${HELM_APP_NAME}"
                 }
             }
         }
-        // stage('Deploy to Kubernetes') {
-        //     steps{
-        //         sh 'helm list'
-        //         sh "helm lint ./${HELM_CHART_DIRECTORY}"
-        //         sh "helm upgrade --wait --timeout 60 --set image.tag=${BUILD_NUMBER} ${HELM_APP_NAME} ./${HELM_CHART_DIRECTORY}"
-        //         sh "helm list | grep ${HELM_APP_NAME}"
-        //     }
-        // }
-        // stage('Docker Deploy Dev'){
-        //     steps{
-        //         sshagent(['tomcat-dev']) {
-        //             withCredentials([string(credentialsId: 'nexus-pwd', variable: 'nexusPwd')]) {
-        //                 sh "ssh ec2-user@172.31.0.38 docker login -u admin -p ${nexusPwd} ${USERNAME}"
-        //             }
-		// 			// Remove existing container, if container name does not exists still proceed with the build
-		// 			sh script: "ssh ec2-user@172.31.0.38 docker rm -f nodeapp",  returnStatus: true
-                    
-        //             sh "ssh ec2-user@172.31.0.38 docker run -d -p 8080:8080 --name nodeapp ${IMAGE_WITH_TAG}"
-        //         }
-        //     }
-        // }
     }
 }
 
