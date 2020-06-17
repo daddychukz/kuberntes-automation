@@ -5,6 +5,8 @@ pipeline {
         registryCredential = 'dockerhub'
         DOCKER_TAG = getDockerTag()
         dockerImage = ''
+        HELM_CHART_DIRECTORY = 'deployment-config/nodeapp'
+        HELM_APP_NAME = 'node-app'
     }
     stages {
         stage("Checkout code") {
@@ -33,6 +35,21 @@ pipeline {
                 sh "docker rmi $registry:${DOCKER_TAG}"
             }
         }
+        stage('Apply Kubernetes files') {
+            steps {
+                withKubeConfig([credentialsId: 'zeeders']){
+                    sh 'kubectl get nodes'
+                }
+            }
+        }
+        // stage('Deploy to Kubernetes') {
+        //     steps{
+        //         sh 'helm list'
+        //         sh "helm lint ./${HELM_CHART_DIRECTORY}"
+        //         sh "helm upgrade --wait --timeout 60 --set image.tag=${BUILD_NUMBER} ${HELM_APP_NAME} ./${HELM_CHART_DIRECTORY}"
+        //         sh "helm list | grep ${HELM_APP_NAME}"
+        //     }
+        // }
         // stage('Docker Deploy Dev'){
         //     steps{
         //         sshagent(['tomcat-dev']) {
