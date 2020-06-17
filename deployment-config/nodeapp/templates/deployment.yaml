@@ -38,12 +38,12 @@ spec:
             valueFrom:
               secretKeyRef:
                 key: MONGO_USERNAME
-                name: {{ .Release.Name }}-auth
+                name: auth-secret
           - name: MONGO_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: MONGO_PASSWORD
-                name: {{ .Release.Name }}-auth
+                name: auth-secret
           - name: MONGO_HOSTNAME
             valueFrom:
               configMapKeyRef:
