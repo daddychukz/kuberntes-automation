@@ -54,7 +54,7 @@ pipeline {
                 branch 'master'
             }
             steps {
-                input message: "Deploy to Prod?", ok: "Deploy" submitter: "USERID"
+                input message: "Deploy to Prod?", ok: "Deploy", submitter: "USERID"
                 withKubeConfig([credentialsId: 'zeeders']){
                     sh 'kubectl get svc'
                     sh 'helm list'
