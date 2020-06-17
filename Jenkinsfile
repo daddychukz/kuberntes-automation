@@ -49,18 +49,13 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Kubernetes Cluster') {
+        stage('Deploy to Kubernetes Production Cluster') {
             when{
                 branch 'master'
             }
-            input {
-                message "Deploy to Production Cluster?"
-                ok "Deploy"
-                submitter "chuks"
-            }
             steps {
+                input message: "Deploy to Prod?", ok: "Deploy" submitter: "USERID"
                 withKubeConfig([credentialsId: 'zeeders']){
-                    echo "Hello, ${PERSON}, nice to meet you."
                     sh 'kubectl get svc'
                     sh 'helm list'
                     sh "helm lint ./${HELM_CHART_DIRECTORY}"
