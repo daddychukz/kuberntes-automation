@@ -1,59 +1,55 @@
-podTemplate(label: 'mypod', serviceAccount: 'jenkins-ci', containers: [ 
-    containerTemplate(
-      name: 'docker', 
-      image: 'docker', 
-      command: 'cat', 
-      resourceRequestCpu: '100m',
-      resourceLimitCpu: '300m',
-      resourceRequestMemory: '300Mi',
-      resourceLimitMemory: '500Mi',
-      ttyEnabled: true
-    ),
-    containerTemplate(
-      name: 'kubectl', 
-      image: 'amaceog/kubectl',
-      resourceRequestCpu: '100m',
-      resourceLimitCpu: '300m',
-      resourceRequestMemory: '300Mi',
-      resourceLimitMemory: '500Mi', 
-      ttyEnabled: true, 
-      command: 'cat'
-    ),
-    containerTemplate(
-      name: 'helm', 
-      image: 'alpine/helm:2.14.0', 
-      resourceRequestCpu: '100m',
-      resourceLimitCpu: '300m',
-      resourceRequestMemory: '300Mi',
-      resourceLimitMemory: '500Mi',
-      ttyEnabled: true, 
-      command: 'cat'
-    )
-  ],
-
-  volumes: [
-    hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
-    hostPathVolume(mountPath: '/usr/local/bin/helm', hostPath: '/usr/local/bin/helm')
-  ]
-  ) {
-    node('mypod') {
-        stage('Get latest version of code') {
-          checkout scm
-        }
-        stage('Check running containers') {
-            container('docker') {  
-                sh 'hostname'
-                sh 'hostname -i' 
-                sh 'docker ps'
-                sh 'ls'
-            }
-            container('kubectl') { 
-                sh 'kubectl get pods -n default'  
-            }
-            container('helm') { 
-                sh 'helm init --client-only --skip-refresh'
-                sh 'helm repo update'
-            }
-        }         
+pipeline {
+    agent any
+    environment {
+        registry = "daddychuks/node-kubernetes"
+        registryCredential = 'dockerhub'
+        DOCKER_TAG = getDockerTag()
+        dockerImage = ''
     }
+    stages {
+        stage("Checkout code") {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build Docker Image'){
+            steps{
+                script {
+                    dockerImage = docker.build registry + DOCKER_TAG
+                }
+            }
+        }
+        stage('Deploy Image') {
+            steps{
+                script {
+                    docker.withRegistry( '', registryCredential ) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        stage('Remove Unused docker image') {
+            steps{
+                sh "docker rmi $registry:${DOCKER_TAG}"
+            }
+        }
+        // stage('Docker Deploy Dev'){
+        //     steps{
+        //         sshagent(['tomcat-dev']) {
+        //             withCredentials([string(credentialsId: 'nexus-pwd', variable: 'nexusPwd')]) {
+        //                 sh "ssh ec2-user@172.31.0.38 docker login -u admin -p ${nexusPwd} ${USERNAME}"
+        //             }
+		// 			// Remove existing container, if container name does not exists still proceed with the build
+		// 			sh script: "ssh ec2-user@172.31.0.38 docker rm -f nodeapp",  returnStatus: true
+                    
+        //             sh "ssh ec2-user@172.31.0.38 docker run -d -p 8080:8080 --name nodeapp ${IMAGE_WITH_TAG}"
+        //         }
+        //     }
+        // }
+    }
+}
+
+def getDockerTag(){
+    def tag  = sh script: 'git rev-parse HEAD', returnStdout: true
+    return tag
 }
