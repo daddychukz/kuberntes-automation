@@ -36,10 +36,8 @@ pipeline {
             }
         }
         stage('Apply Kubernetes files') {
-            steps {
-                withKubeConfig([credentialsId: 'zeeders']){
-                    sh 'kubectl get nodes'
-                }
+            withKubeConfig([credentialsId: 'zeeders']){
+                sh 'kubectl get nodes'
             }
         }
         // stage('Deploy to Kubernetes') {
